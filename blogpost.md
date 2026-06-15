@@ -116,13 +116,18 @@ The visual workspace brings the agent's multi-modal intelligence directly to por
 
 To understand the operational flow, we examine the dashboard layout across its two primary execution phases: the initial setup and the post-analysis output.
 
-#### 1. Baseline State (Before Running - [images/ui_before.png](images/ui_before.png))
+#### 1. Baseline State (Before Running)
+
+![UI Before Run](images/ui_before.png)
+
 The baseline interface presents the asset manager with a clean, structured workspace organized into three primary columns:
 *   **Interactive Scenario Sidebar (Left Panel):** Features a **Demo Scenario Explorer** dropdown selector to choose one of the five core business scenarios. Directly underneath, the **Live Data Viewer** table drawer automatically updates to render the schema and initial raw records (e.g., showing columns like `project_id`, `property_name`, `project_type` for the active table `construction_costs_ti`) from the connected BigQuery database.
 *   **Query and Prompt Configuration (Center Workspace):** Displays the selected scenario's context under **Scenario Background**. The **Ask the AI Agent** text area pre-populates with a recommended query (e.g., referencing specific files like `PENN2_Apex_Fintech_Draft_Lease.pdf` and `PENN2_Construction_Status_Report.pdf` and requesting an analysis of Section 14 tenant improvement milestones). A red **Run Analysis** action button is positioned at the bottom of the section.
 *   **Plotly Visualisation Canvas (Right Panel):** Houses the **Interactive Visualisations** canvas. In this baseline state, the panel displays blank grey skeleton placeholders (e.g., underneath "Contractor Timelines & Cost Overruns"), indicating where final analytical plots, Gantt charts, or cost distributions will render upon execution.
 
-#### 2. Execution State (After Co-pilot Completes - [images/ui_after.png](images/ui_after.png))
+#### 2. Execution State (After Co-pilot Completes)
+
+![UI After Run](images/ui_after.png)
 Upon clicking **Run Analysis**, the co-pilot executes the query and dynamically updates the workspace:
 *   **Streaming Agent Reasoning:** A dedicated **Agent Response** pane expands beneath the prompt input block. It streams the agent's multi-step planning, listing the generated BigQuery SQL SELECT queries, parsed lease provisions, and Python sandbox executions in real time.
 *   **Success Alert Banner:** A green success banner displaying "Analysis Complete!" is displayed at the bottom of the agent response, confirming successful execution.
