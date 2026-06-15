@@ -14,6 +14,21 @@ This solution is designed for real estate investment trust (REIT) and asset mana
 
 The AI Asset Optimizer is not just a chat interface. It is an agentic RAG (Retrieval-Augmented Generation) pipeline that combines unstructured document intelligence with structured database querying and exact mathematical execution.
 
+### Component Topology
+
+```mermaid
+graph TD
+    User([User / Asset Manager]) -->|HTTPS| IAP[Identity-Aware Proxy]
+    IAP -->|Authenticated Request| UI[Streamlit Frontend on Cloud Run]
+    UI -->|Local Call / Stream| ADK[ADK Agent Engine]
+    ADK -->|Reasoning & Planning| LLM[Gemini 3.5 Flash]
+    ADK -->|Exact Calculations| Sandbox[Python Code Executor]
+    ADK -->|Tools| BQ[(BigQuery Dataset)]
+    ADK -->|Tools| GCS[(GCS Bucket - PDFs)]
+```
+
+### Execution Flow Sequence
+
 ```mermaid
 sequenceDiagram
     autonumber
