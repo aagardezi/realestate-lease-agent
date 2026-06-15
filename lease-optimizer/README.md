@@ -1,89 +1,63 @@
-# lease-optimizer
+# Vornado Penn District Lease Optimizer Agent Package
 
-Simple ReAct agent
-Agent generated with `agents-cli` version `0.4.0`
+This directory contains the core agent implementation and frontend dashboard for the Vornado Penn District Lease Optimizer.
 
-## Project Structure
+---
 
-```
+## 📂 Project Directory Structure
+
+```text
 lease-optimizer/
-├── app/         # Core agent code
-│   ├── agent.py               # Main agent logic
-│   ├── agent_runtime_app.py    # Agent Runtime application logic
-│   └── app_utils/             # App utilities and helpers
-├── tests/                     # Unit, integration, and load tests
-├── GEMINI.md                  # AI-assisted development guide
-└── pyproject.toml             # Project dependencies
+├── app/
+│   ├── __init__.py
+│   ├── agent.py               # Main ADK Agent and instruction prompts
+│   ├── agent_runtime_app.py   # Agent Runtime interface entrypoint
+│   └── tools.py               # Custom tools for BigQuery SQL & GCS PDF analysis
+├── frontend/
+│   └── streamlit_app.py       # Streamlit Web UI dashboard with Plotly visualisations
+├── tests/
+│   ├── unit/                  # Unit tests
+│   └── integration/           # Integration tests targeting BQ/GCS and streaming
+├── pyproject.toml             # Python dependencies (Streamlit, Plotly, BigQuery, db-dtypes)
+└── Dockerfile                 # Container specification for Cloud Run deployment
 ```
 
-> 💡 **Tip:** Use [Gemini CLI](https://github.com/google-gemini/gemini-cli) for AI-assisted development - project context is pre-configured in `GEMINI.md`.
+---
 
-## Requirements
+## 💻 Local Development & Testing
 
-Before you begin, ensure you have:
-- **uv**: Python package manager (used for all dependency management in this project) - [Install](https://docs.astral.sh/uv/getting-started/installation/) ([add packages](https://docs.astral.sh/uv/concepts/dependencies/) with `uv add <package>`)
-- **agents-cli**: Agents CLI - Install with `uv tool install google-agents-cli`
-- **Google Cloud SDK**: For GCP services - [Install](https://cloud.google.com/sdk/docs/install)
-
-
-## Quick Start
-
-Install `agents-cli` and its skills if not already installed:
-
+### 1. Install Dependencies
+Before running the agent or frontend, install the package and its locked dependencies using `uv`:
 ```bash
-uvx google-agents-cli setup
+# Set PyPI simple index override if you are in a restricted network
+UV_DEFAULT_INDEX=https://pypi.org/simple agents-cli install
 ```
 
-Install required packages:
-
+### 2. Run the Streamlit Dashboard Locally
+Start the visual web interface on your local workstation:
 ```bash
-agents-cli install
+UV_DEFAULT_INDEX=https://pypi.org/simple uv run streamlit run frontend/streamlit_app.py
 ```
+By default, the dashboard will launch at [http://localhost:8501](http://localhost:8501).
 
-Test the agent with a local web server:
-
+### 3. Run the Local CLI Playground
+To test the agent directly in the terminal or using the ADK dev console:
 ```bash
 agents-cli playground
 ```
 
-You can also use features from the [ADK](https://adk.dev/) CLI with `uv run adk`.
-
-## Commands
-
-| Command              | Description                                                                                 |
-| -------------------- | ------------------------------------------------------------------------------------------- |
-| `agents-cli install` | Install dependencies using uv                                                         |
-| `agents-cli playground` | Launch local development environment                                                  |
-| `agents-cli lint`    | Run code quality checks                                                               |
-| `agents-cli eval`    | Evaluate agent behavior (generate, grade, analyze, and more — see `agents-cli eval --help`) |
-| `uv run pytest tests/unit tests/integration` | Run unit and integration tests                                                        |
-| `agents-cli deploy`  | Deploy agent to Agent Runtime                                                                |
-| `agents-cli publish gemini-enterprise` | Register deployed agent to Gemini Enterprise                    |
-
-## 🛠️ Project Management
-
-| Command | What It Does |
-|---------|--------------|
-| `agents-cli scaffold enhance` | Add CI/CD pipelines and Terraform infrastructure |
-| `agents-cli infra cicd` | One-command setup of entire CI/CD pipeline + infrastructure |
-| `agents-cli scaffold upgrade` | Auto-upgrade to latest version while preserving customizations |
+### 4. Execute Integration and Unit Tests
+Run the automated test suite using `pytest`:
+```bash
+uv run pytest
+```
 
 ---
 
-## Development
+## 🚀 Deployment
 
-Edit your agent logic in `app/agent.py` and test with `agents-cli playground` - it auto-reloads on save.
-
-## Deployment
-
-```bash
-gcloud config set project <your-project-id>
-agents-cli deploy
-```
-
-To add CI/CD and Terraform, run `agents-cli scaffold enhance`.
-To set up your production infrastructure, run `agents-cli infra cicd`.
-
-## Observability
-
-Built-in telemetry exports to Cloud Trace, BigQuery, and Cloud Logging.
+Refer to the main [Root README.md](../README.md) for full instructions on:
+1. Uploading unstructured PDF draft leases to Google Cloud Storage.
+2. Creating and seeding the mock real estate databases in BigQuery.
+3. Deploying the agent to **Agent Runtime (Vertex AI Reasoning Engine)**.
+4. Building and deploying the Streamlit UI to **Cloud Run** and securing it behind **Identity-Aware Proxy (IAP)**.
