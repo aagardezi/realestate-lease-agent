@@ -1,0 +1,8 @@
+comp_id,property_name,submarket,execution_date,rsf,lease_term_months,base_rent_per_rsf,free_rent_months,ti_allowance_per_rsf,source
+C-3001,One Penn Plaza,Penn District,2025-05-10,50000,120,92.0,7,125.0,JLL
+C-3002,Two Penn Plaza,Penn District,2025-11-15,80000,180,108.0,11,145.0,CBRE
+C-3003,11 Penn Plaza,Penn District,2025-08-01,60000,120,85.0,6,100.0,Cushman & Wakefield
+C-3004,330 West 34th St,Midtown West,2025-12-20,40000,120,82.0,5,95.0,JLL
+C-3005,One Penn Plaza,Penn District,2026-02-18,30000,120,89.0,6,115.0,Cushman & Wakefield
+C-3006,1290 Ave of Americas,Midtown,2025-09-05,100000,120,96.0,8,120.0,Newmark
+C-3007,770 Broadway,Midtown South,2025-06-12,85000,120,110.0,10,105.0,CBRE

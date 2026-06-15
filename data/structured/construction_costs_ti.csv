@@ -1,0 +1,9 @@
+project_id,property_name,project_type,contractor_name,start_date,completion_date,budgeted_cost_per_rsf,actual_cost_per_rsf,delay_days,reason_for_delay
+P-2001,PENN 1,Tenant Fit-Out,Turner Construction,2023-05-01,2023-10-25,120.0,128.5,25,HVAC equipment delivery delays
+P-2002,PENN 1,Tenant Fit-Out,Structure Tone,2022-10-01,2023-02-28,130.0,131.2,0,None
+P-2003,PENN 2,Lobby Redevelopment,Skanska USA,2022-03-01,2024-08-30,250.0,278.0,120,Structural steel fabrication delays
+P-2004,770 Broadway,Tenant Fit-Out,L&K Partners,2021-07-01,2021-12-15,110.0,109.8,0,None
+P-2005,1290 Ave of Americas,Infrastructure Upgrade,Gilbane Building Co,2018-06-01,2018-12-20,140.0,146.5,20,Permitting delays with DOB
+P-2006,PENN 11,Lobby Upgrade,Structure Tone,2023-11-01,2024-03-15,100.0,102.0,15,Subcontractor labor shortage
+P-2007,PENN 2,Tenant Fit-Out,Turner Construction,2026-06-01,2027-07-15,150.0,158.0,44,HVAC air handling unit delays
+P-2008,PENN 1,Tenant Fit-Out,Structure Tone,2026-08-15,2026-12-30,130.0,130.0,0,None

@@ -1,0 +1,11 @@
+lease_id,property_name,tenant_name,execution_date,commencement_date,lease_term_months,rsf,initial_base_rent_per_rsf,free_rent_months,ti_allowance_per_rsf,step_up_percentage,step_up_interval_months,industry,lease_status
+L-1001,PENN 1,Cisco Systems Inc.,2023-04-12,2023-11-01,120,100000,90.0,8,120.0,10.0,60,Technology,Active
+L-1002,PENN 1,Empire State Development,2022-09-15,2023-03-01,180,115000,85.0,10,130.0,10.0,60,Government,Active
+L-1003,PENN 2,MSG Entertainment Corp.,2024-02-18,2024-10-01,240,120000,105.0,12,160.0,10.0,60,Entertainment,Active
+L-1004,770 Broadway,Meta Platforms Inc.,2021-06-30,2022-01-01,120,300000,115.0,9,110.0,10.0,60,Technology,Active
+L-1005,1290 Ave of the Americas,Neuberger Berman,2018-05-10,2019-01-01,180,350000,98.0,12,140.0,12.5,60,Finance,Active
+L-1006,PENN 11,Dell Technologies,2023-10-05,2024-04-01,84,50000,88.0,6,100.0,10.0,36,Technology,Active
+L-1007,PENN 1,Samsung Electronics,2021-11-12,2022-05-01,120,75000,92.0,6,110.0,10.0,60,Technology,Active
+L-1008,770 Broadway,Macy's Inc.,2015-08-20,2016-02-01,180,150000,75.0,8,80.0,10.0,60,Retail,Active
+L-1009,1500 Broadway,Disney Store,2017-03-14,2017-10-01,120,40000,120.0,4,70.0,12.0,60,Retail,Expired
+L-1010,PENN 11,Spinola Legal,2019-12-01,2020-05-01,60,15000,80.0,3,40.0,10.0,36,Legal,Active
