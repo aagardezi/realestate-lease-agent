@@ -19,6 +19,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+
 # Set environment project just in case
 os.environ["GOOGLE_CLOUD_PROJECT"] = "genaillentsearch"
 os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "True"
@@ -82,27 +83,22 @@ if st.session_state.last_story_name != selected_story_name:
     st.session_state.agent_response = ""
     st.session_state.is_running = False
 
-# Ensure user_query exists in state
-if "user_query" not in st.session_state:
+# Check for custom prompt query parameter
+custom_prompt = st.query_params.get("prompt")
+if custom_prompt:
+    st.session_state.user_query = custom_prompt
+elif "user_query" not in st.session_state:
     st.session_state.user_query = scenario["default_query"]
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 📊 Live Data Viewer")
 
 
-# BigQuery client for visualisations
-@st.cache_resource
-def get_bq_client():
-    return bigquery.Client(project="genaillentsearch")
-
-
-bq_client = get_bq_client()
-
-
 # Fetch table data helper
 def fetch_table_data(table_name):
+    client = bigquery.Client(project="genaillentsearch")
     query = f"SELECT * FROM `genaillentsearch.vornado_realestate.{table_name}`"
-    return bq_client.query(query).to_dataframe()
+    return client.query(query).to_dataframe()
 
 
 # Show dataset helper
@@ -132,6 +128,14 @@ with col1:
     session_service = InMemorySessionService()
 
     async def run_agent_async(prompt):
+        if st.query_params.get("mock") == "true":
+            yield "Hello! I am the Vornado Penn District Lease Optimizer Agent.\n\n"
+            await asyncio.sleep(1)
+            yield "I am powered by Gemini 3.5 Flash and ADK, and I can help you analyze:\n"
+            await asyncio.sleep(1)
+            yield "- **Cash NOI Inflection & Slippage**\n- **Concession & Penalty Liability Audit**\n- **Contractor Risk & Budget Overrun**\n- **Market Benchmarking**\n- **Additional Rent Escalation Forecasting**\n"
+            return
+
         session = await session_service.create_session(
             user_id="demo-user", app_name="app"
         )
@@ -149,13 +153,19 @@ with col1:
                 )
                 yield text_delta
 
+    autorun = st.query_params.get("autorun") == "true"
+
     run_clicked = st.button(
         "🚀 Run Analysis",
         type="primary",
         disabled=st.session_state.is_running,
     )
 
-    if run_clicked:
+    if (
+        (run_clicked or autorun)
+        and not st.session_state.is_running
+        and not st.session_state.agent_response
+    ):
         st.session_state.is_running = True
         st.session_state.agent_response = ""
         st.rerun()

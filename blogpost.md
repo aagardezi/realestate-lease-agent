@@ -102,6 +102,25 @@ gantt
 
 ---
 
+## 🖥️ User Interface: Streamlit Dashboard Walkthrough
+
+The visual workspace brings the agent's multi-modal intelligence directly to portfolio managers, dividing the layout between data exploration, natural language queries, and visual analytics.
+
+````carousel
+![UI Before Triggering Analysis](images/ui_before.png)
+<!-- slide -->
+![UI After Triggering Analysis](images/ui_after.png)
+````
+
+### **UI Flow Highlights:**
+1. **Interactive Scenario Sidebar:** Users can switch between predefined business scenarios (e.g., Cash NOI Inflection, Market Benchmarking). Switching scenarios dynamically refreshes the scenario background info, pre-fills the recommended prompt, and highlights the corresponding live BigQuery tables in the side viewer.
+2. **Live Data Viewer:** Directly inspect the BigQuery tables mapped to the active scenario, enabling asset managers to keep eyes on the raw underlying financial records without leaving the workspace.
+3. **Ask the AI Agent:** Submit custom natural-language prompts or click the primary "Run Analysis" button to trigger the co-pilot.
+4. **Streaming Reasoning Outputs:** The agent streams its response step-by-step, including SQL queries constructed, Python formulas routed to the sandbox, and final quantitative results.
+5. **Interactive Visualisations:** Property-specific metrics, contractor timelines, or submarket comp distributions are updated dynamically on the right-hand panel using Plotly charts.
+
+---
+
 ## 🚀 Business Value Proposition
 
 ### ⚡ Accelerated Deal Cycles
