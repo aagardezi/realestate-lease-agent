@@ -112,12 +112,106 @@ The visual workspace brings the agent's multi-modal intelligence directly to por
 ![UI After Triggering Analysis](images/ui_after.png)
 ````
 
-### **UI Flow Highlights:**
-1. **Interactive Scenario Sidebar:** Users can switch between predefined business scenarios (e.g., Cash NOI Inflection, Market Benchmarking). Switching scenarios dynamically refreshes the scenario background info, pre-fills the recommended prompt, and highlights the corresponding live BigQuery tables in the side viewer.
-2. **Live Data Viewer:** Directly inspect the BigQuery tables mapped to the active scenario, enabling asset managers to keep eyes on the raw underlying financial records without leaving the workspace.
-3. **Ask the AI Agent:** Submit custom natural-language prompts or click the primary "Run Analysis" button to trigger the co-pilot.
-4. **Streaming Reasoning Outputs:** The agent streams its response step-by-step, including SQL queries constructed, Python formulas routed to the sandbox, and final quantitative results.
-5. **Interactive Visualisations:** Property-specific metrics, contractor timelines, or submarket comp distributions are updated dynamically on the right-hand panel using Plotly charts.
+### Detailed Walkthrough of the User Interface
+
+To understand the operational flow, we examine the dashboard layout across its two primary execution phases: the initial setup and the post-analysis output.
+
+#### 1. Baseline State (Before Running - [images/ui_before.png](images/ui_before.png))
+The baseline interface presents the asset manager with a clean, structured workspace organized into three primary columns:
+*   **Interactive Scenario Sidebar (Left Panel):** Features a **Demo Scenario Explorer** dropdown selector to choose one of the five core business scenarios. Directly underneath, the **Live Data Viewer** table drawer automatically updates to render the schema and initial raw records (e.g., showing columns like `project_id`, `property_name`, `project_type` for the active table `construction_costs_ti`) from the connected BigQuery database.
+*   **Query and Prompt Configuration (Center Workspace):** Displays the selected scenario's context under **Scenario Background**. The **Ask the AI Agent** text area pre-populates with a recommended query (e.g., referencing specific files like `PENN2_Apex_Fintech_Draft_Lease.pdf` and `PENN2_Construction_Status_Report.pdf` and requesting an analysis of Section 14 tenant improvement milestones). A red **Run Analysis** action button is positioned at the bottom of the section.
+*   **Plotly Visualisation Canvas (Right Panel):** Houses the **Interactive Visualisations** canvas. In this baseline state, the panel displays blank grey skeleton placeholders (e.g., underneath "Contractor Timelines & Cost Overruns"), indicating where final analytical plots, Gantt charts, or cost distributions will render upon execution.
+
+#### 2. Execution State (After Co-pilot Completes - [images/ui_after.png](images/ui_after.png))
+Upon clicking **Run Analysis**, the co-pilot executes the query and dynamically updates the workspace:
+*   **Streaming Agent Reasoning:** A dedicated **Agent Response** pane expands beneath the prompt input block. It streams the agent's multi-step planning, listing the generated BigQuery SQL SELECT queries, parsed lease provisions, and Python sandbox executions in real time.
+*   **Success Alert Banner:** A green success banner displaying "Analysis Complete!" is displayed at the bottom of the agent response, confirming successful execution.
+*   **Formatted Markdown Tables:** Main workspace outputs, such as monthly cash flow inflections, penalty abatement calculations, or market comp ranges, are rendered as structured, read-only markdown tables in the central chat pane.
+*   **Filled Plotly Dashboards:** The right-hand panel's skeleton placeholders are replaced with high-fidelity, interactive visualizations, including Gantt charts tracking construction delays against contractual penalty triggers, contractor cost variance plots, or historical opex trends.
+
+---
+
+## 📊 Mock Test Data Structure: Grounding Agent Decisions
+
+The AI Asset Optimizer relies on a multi-modal mock data architecture, integrating unstructured contract documents in Google Cloud Storage with structured operational records in BigQuery. This allows the co-pilot to audit draft contracts by cross-referencing them against actual historical and market data.
+
+### 📁 Unstructured Documents (Google Cloud Storage)
+Unstructured documents are stored in the GCS bucket `vornado-leases-genaillentsearch` and contain the legal parameters and real-time project updates:
+*   `PENN1_BioMed_Diagnostics_Draft_Lease.pdf`: A draft lease agreement for BioMed Diagnostics at PENN 1. It details starting base rent schedules, tenant improvement (TI) allowance terms, and commencement milestones.
+*   `PENN2_Apex_Fintech_Draft_Lease.pdf`: A draft lease agreement for Apex Fintech at PENN 2. It contains legal provisions regarding base rent rates, late delivery penalty/abatement schedules (e.g., Section 14 and Section 3.3), and base year opex definitions.
+*   `PENN2_Construction_Status_Report.pdf`: A progress update from the general contractor outlining targeted versus actual delivery dates, project delays, and specific causes of delay (e.g., HVAC units lead times).
+
+### 🗄️ Structured Datasets (BigQuery)
+Structured tables are stored under the BigQuery dataset `genaillentsearch.vornado_realestate` and provide historical portfolio metrics and local submarket benchmarks:
+
+#### 1. `historical_leases`
+*   **Purpose**: Tracks historical lease executions across Vornado's portfolio to enable baseline rent, lease term, and incentive benchmarking.
+*   **Schema**:
+    *   `lease_id` (STRING): Unique identifier for the historical lease.
+    *   `property_name` (STRING): Vornado property name (e.g. PENN 1, PENN 2).
+    *   `tenant_name` (STRING): Name of the tenant.
+    *   `execution_date` (DATE): Date the lease agreement was signed.
+    *   `commencement_date` (DATE): Date the lease term officially commenced.
+    *   `lease_term_months` (INT64): Total length of the lease in months.
+    *   `rsf` (INT64): Rentable square feet leased.
+    *   `initial_base_rent_per_rsf` (NUMERIC): Starting base rent rate per RSF per year.
+    *   `free_rent_months` (INT64): Number of months of base rent abatement.
+    *   `ti_allowance_per_rsf` (NUMERIC): Tenant Improvement allowance provided per RSF.
+    *   `step_up_percentage` (NUMERIC): Percentage increase during rent step-ups.
+    *   `step_up_interval_months` (INT64): Number of months between rent step-ups.
+    *   `industry` (STRING): Tenant industry vertical.
+    *   `lease_status` (STRING): Current status (Active, Expired, Terminated).
+
+#### 2. `construction_costs_ti`
+*   **Purpose**: Tracks budget, timeline, and actual construction performance across various contractors to audit construction delays and contractor delivery risks.
+*   **Schema**:
+    *   `project_id` (STRING): Unique identifier for the construction project.
+    *   `property_name` (STRING): Vornado property name.
+    *   `project_type` (STRING): Type of project (e.g. Tenant Fit-Out, Lobby Redevelopment).
+    *   `contractor_name` (STRING): Name of the general contractor.
+    *   `start_date` (DATE): Project start date.
+    *   `completion_date` (DATE): Project actual or projected completion date.
+    *   `budgeted_cost_per_rsf` (NUMERIC): Underwritten or budgeted cost per RSF.
+    *   `actual_cost_per_rsf` (NUMERIC): Actual cost incurred per RSF.
+    *   `delay_days` (INT64): Number of calendar days of delay.
+    *   `reason_for_delay` (STRING): Primary driver of construction delay.
+
+#### 3. `market_comps`
+*   **Purpose**: Houses comparable transaction records from external brokerages within local submarkets to evaluate negotiation terms.
+*   **Schema**:
+    *   `comp_id` (STRING): Unique identifier for the market comparison record.
+    *   `property_name` (STRING): Name of the comp property.
+    *   `submarket` (STRING): Submarket classification (e.g. Penn District, Midtown West).
+    *   `execution_date` (DATE): Date the lease comp was executed.
+    *   `rsf` (INT64): Rentable square feet of the comp lease.
+    *   `lease_term_months` (INT64): Lease term in months.
+    *   `base_rent_per_rsf` (NUMERIC): Base rent per RSF per year.
+    *   `free_rent_months` (INT64): Number of months of rent abatement.
+    *   `ti_allowance_per_rsf` (NUMERIC): TI allowance per RSF.
+    *   `source` (STRING): Brokerage source of the data (JLL, CBRE, Cushman).
+
+#### 4. `tax_escalations`
+*   **Purpose**: Contains historical real estate tax and operating expense (opex) records per RSF alongside baseline base-year configurations. Used to model opex/tax escalation forecasting and cap compliance.
+*   **Schema**:
+    *   `property_name` (STRING): Vornado property name.
+    *   `year` (INT64): Calendar year of tax or expense assessment.
+    *   `real_estate_tax_per_rsf` (NUMERIC): Real estate tax rate per RSF.
+    *   `operating_expense_per_rsf` (NUMERIC): Operating expense rate per RSF.
+    *   `base_year_tax` (NUMERIC): Base year real estate tax rate per RSF for escalations.
+    *   `base_year_opex` (NUMERIC): Base year operating expense rate per RSF for escalations.
+
+### 🔄 Data Cross-Referencing & Audit Workflow
+To execute a lease audit, the agent performs a coordinated 4-step pipeline:
+1.  **Extract Contract Rules:** The agent parses the lease PDF (from GCS) to extract key contract metrics (e.g., target delivery dates, opex caps, base year, and penalty triggers).
+2.  **Fetch Operational Realities:** The agent queries BigQuery tables to retrieve corresponding performance metrics (e.g., actual construction completion dates in `construction_costs_ti` or historical tax rates in `tax_escalations`).
+3.  **Execute calculations in Sandbox:** The extracted contract parameters and raw database rows are passed to the sandboxed Python Code Executor to perform precise date differences, penalty multipliers, or opex cap compounding.
+4.  **Produce Audit Summary:** The final validated outputs are formatted into clear markdown summaries and interactive dashboards.
+
+#### Concrete Scenario Workflows:
+*   **Cash NOI Inflection & Delay Penalty Audits**: The agent reads the draft lease agreement (`PENN2_Apex_Fintech_Draft_Lease.pdf`) to extract rent abatement triggers and penalty rules (e.g., Section 3.3). It then queries the construction status report (`PENN2_Construction_Status_Report.pdf`) or the `construction_costs_ti` table to obtain actual contractor delays (e.g., 44 delay days on PENN 2). Using this data, the agent computes the exact cash flow slippage and penalty exposure (e.g., number of 1-for-1 and 2-for-1 rent abatement days) via the Python Code Executor.
+*   **Contractor Risk Audits**: The agent combines the contractor named in the construction status report with historical performance data from the `construction_costs_ti` table in BigQuery. It runs aggregation queries to compute historical average delay days and budget overruns for that contractor (e.g., Turner Construction), evaluating project completion risk.
+*   **Market Benchmarking**: The agent parses proposed base rent, free rent, and TI allowances from the draft lease PDF. It then runs a SQL query on the `market_comps` table to pull comparable transactions in the same submarket (e.g., Penn District) and calculates the average base rent and TI allowance to benchmark the competitiveness of the draft.
+*   **Escalation Forecasting**: The agent reads the proportionate share percentage, base year, and growth cap clauses from the draft lease. It then pulls historical tax/opex data from the `tax_escalations` table to calculate base year vs. subsequent year variances, applying caps and ratios to forecast future tenant billings.
 
 ---
 
