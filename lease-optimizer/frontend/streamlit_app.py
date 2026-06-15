@@ -26,7 +26,7 @@ os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "True"
 
 st.title("🏢 Vornado Penn District Lease Optimizer")
 st.markdown(
-    "Asset Management & Revenue Optimization Co-pilot for the Penn District redevelopment (PENN 1, PENN 2, PENN 11)."
+    "Asset Management & Revenue Optimization Agent for the Penn District redevelopment (PENN 1, PENN 2, PENN 11)."
 )
 
 # Storylines configuration
