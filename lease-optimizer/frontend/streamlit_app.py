@@ -63,6 +63,8 @@ if "is_running" not in st.session_state:
     st.session_state.is_running = False
 if "agent_response" not in st.session_state:
     st.session_state.agent_response = ""
+if "intermediate_steps" not in st.session_state:
+    st.session_state.intermediate_steps = []
 
 # Sidebar Scenario Selection
 st.sidebar.header("Demo Scenario Explorer")
@@ -81,6 +83,7 @@ if st.session_state.last_story_name != selected_story_name:
     st.session_state.last_story_name = selected_story_name
     st.session_state.user_query = scenario["default_query"]
     st.session_state.agent_response = ""
+    st.session_state.intermediate_steps = []
     st.session_state.is_running = False
 
 # Check for custom prompt query parameter
@@ -127,13 +130,60 @@ with col1:
 
     session_service = InMemorySessionService()
 
+    def render_intermediate_step(container, step):
+        if step["type"] == "tool_call":
+            container.write(f"🛠️ **Calling Tool**: `{step['name']}`")
+            if step["args"]:
+                container.json(step["args"])
+        elif step["type"] == "tool_response":
+            container.write(f"📥 **Tool Response** from `{step['name']}`:")
+            container.json(step["response"])
+        elif step["type"] == "code_exec":
+            container.write("💻 **Executing Python Code**:")
+            container.code(step["code"], language="python")
+        elif step["type"] == "code_exec_result":
+            container.write("📤 **Code Execution Output**:")
+            container.code(step["result"])
+
     async def run_agent_async(prompt):
         if st.query_params.get("mock") == "true":
-            yield "Hello! I am the Vornado Penn District Lease Optimizer Agent.\n\n"
+            yield {
+                "type": "tool_call",
+                "name": "analyze_lease_document",
+                "args": {
+                    "document_path": "gs://vornado-leases/PENN2_Apex_Fintech_Draft_Lease.pdf",
+                    "query": "Extract Section 3.3 penalty triggers",
+                },
+            }
             await asyncio.sleep(1)
-            yield "I am powered by Gemini 3.5 Flash and ADK, and I can help you analyze:\n"
+            yield {
+                "type": "tool_response",
+                "name": "analyze_lease_document",
+                "response": {
+                    "status": "success",
+                    "extracted_text": "Section 3.3: Tiered Penalty triggers if delivery is delayed. Abatement: 1-for-1 for the first 30 days, 2-for-1 for days 31-90. Daily base rent rate: $30,000.",
+                },
+            }
             await asyncio.sleep(1)
-            yield "- **Cash NOI Inflection & Slippage**\n- **Concession & Penalty Liability Audit**\n- **Contractor Risk & Budget Overrun**\n- **Market Benchmarking**\n- **Additional Rent Escalation Forecasting**\n"
+            yield {
+                "type": "code_exec",
+                "code": "delay_days = 45\npenalty_days = 30 * 1 + (delay_days - 30) * 2\ndaily_rate = 30000\ntotal_penalty = penalty_days * daily_rate\nprint(f'Penalty days: {penalty_days}, Total: ${total_penalty}')",
+            }
+            await asyncio.sleep(1)
+            yield {
+                "type": "code_exec_result",
+                "result": "Penalty days: 60, Total: $1800000\n",
+            }
+            await asyncio.sleep(1)
+            yield {
+                "type": "text",
+                "content": "Hello! I am the Vornado Penn District Lease Optimizer Agent.\n\n",
+            }
+            await asyncio.sleep(0.5)
+            yield {
+                "type": "text",
+                "content": "Based on Section 3.3 of the Apex lease draft and a 45-day delivery delay, the penalty rent abatement calculation is as follows:\n- First 30 delay days: 30 days abatement (1-for-1)\n- Remaining 15 delay days: 30 days abatement (2-for-1)\n- Total Abatement Days: **60 days**\n- Daily Base Rent: **$30,000**\n- Total Penalty Exposure: **$1,800,000**\n",
+            }
             return
 
         session = await session_service.create_session(
@@ -148,10 +198,28 @@ with col1:
             new_message=message, user_id="demo-user", session_id=session.id
         ):
             if event.content and event.content.parts:
-                text_delta = "".join(
-                    part.text for part in event.content.parts if part.text
-                )
-                yield text_delta
+                for part in event.content.parts:
+                    if part.function_call:
+                        yield {
+                            "type": "tool_call",
+                            "name": part.function_call.name,
+                            "args": part.function_call.args,
+                        }
+                    elif part.function_response:
+                        yield {
+                            "type": "tool_response",
+                            "name": part.function_response.name,
+                            "response": part.function_response.response,
+                        }
+                    elif part.executable_code:
+                        yield {"type": "code_exec", "code": part.executable_code.code}
+                    elif part.code_execution_result:
+                        yield {
+                            "type": "code_exec_result",
+                            "result": part.code_execution_result.output,
+                        }
+                    elif part.text:
+                        yield {"type": "text", "content": part.text}
 
     autorun = st.query_params.get("autorun") == "true"
 
@@ -168,34 +236,55 @@ with col1:
     ):
         st.session_state.is_running = True
         st.session_state.agent_response = ""
+        st.session_state.intermediate_steps = []
         st.rerun()
 
     if st.session_state.is_running:
         st.subheader("🤖 Agent Response")
+        status_container = st.status(
+            "Analyzing legal clauses and financial databases...", expanded=True
+        )
         response_box = st.empty()
         response_box.markdown(st.session_state.agent_response)
 
-        with st.spinner("Analyzing legal clauses and financial databases..."):
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
+        # Pre-render any steps already logged
+        for step in st.session_state.intermediate_steps:
+            render_intermediate_step(status_container, step)
 
-            async def main_run():
-                full_response = ""
-                async for chunk in run_agent_async(st.session_state.user_query):
-                    full_response += chunk
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+        async def main_run():
+            full_response = ""
+            async for event_info in run_agent_async(st.session_state.user_query):
+                if event_info["type"] == "text":
+                    full_response += event_info["content"]
                     st.session_state.agent_response = full_response
                     response_box.markdown(full_response)
+                else:
+                    st.session_state.intermediate_steps.append(event_info)
+                    render_intermediate_step(status_container, event_info)
+            status_container.update(
+                label="Analysis complete!", state="complete", expanded=False
+            )
 
-            try:
-                loop.run_until_complete(main_run())
-            except Exception as e:
-                st.error(f"Execution failed: {e}")
-            finally:
-                st.session_state.is_running = False
-                st.rerun()
+        try:
+            loop.run_until_complete(main_run())
+        except Exception as e:
+            st.error(f"Execution failed: {e}")
+            status_container.update(label="Execution failed", state="error")
+        finally:
+            st.session_state.is_running = False
+            st.rerun()
 
     elif st.session_state.agent_response:
         st.subheader("🤖 Agent Response")
+        if st.session_state.intermediate_steps:
+            with st.status(
+                "Analysis complete!", state="complete", expanded=False
+            ) as status_container:
+                for step in st.session_state.intermediate_steps:
+                    render_intermediate_step(status_container, step)
         st.markdown(st.session_state.agent_response)
         st.success("Analysis Complete!")
 

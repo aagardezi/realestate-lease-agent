@@ -92,19 +92,34 @@ def _validate_bigquery_query(sql_query: str) -> bool:
         if table in ctes:
             continue
         parts = table.split(".")
-        table_base = parts[-1]
-        if table_base not in allowed_tables_basenames:
-            return False
-        if len(parts) > 1:
-            dataset = parts[-2]
-            if dataset != "vornado_realestate":
+        if len(parts) >= 3 and parts[-2] == "information_schema":
+            if parts[-3] != "vornado_realestate":
                 return False
-        if len(parts) > 2:
-            project = parts[-3]
-            if project not in (
-                "genaillentsearch",
-                os.environ.get("GOOGLE_CLOUD_PROJECT", "genaillentsearch"),
-            ):
+            if len(parts) == 4:
+                project = parts[-4]
+                if project not in (
+                    "genaillentsearch",
+                    os.environ.get("GOOGLE_CLOUD_PROJECT", "genaillentsearch"),
+                ):
+                    return False
+            elif len(parts) > 4:
+                return False
+        else:
+            table_base = parts[-1]
+            if table_base not in allowed_tables_basenames:
+                return False
+            if len(parts) > 1:
+                dataset = parts[-2]
+                if dataset != "vornado_realestate":
+                    return False
+            if len(parts) > 2:
+                project = parts[-3]
+                if project not in (
+                    "genaillentsearch",
+                    os.environ.get("GOOGLE_CLOUD_PROJECT", "genaillentsearch"),
+                ):
+                    return False
+            if len(parts) > 3:
                 return False
     return True
 
